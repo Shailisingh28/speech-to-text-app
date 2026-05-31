@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import API from "../services/api";
 
 function Register() {
 
@@ -13,8 +13,8 @@ function Register() {
 
         try {
 
-            const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/auth/register`,
+            const response = await API.post(
+                "/auth/register",
                 {
                     name,
                     email,
@@ -22,15 +22,16 @@ function Register() {
                 }
             );
 
-            alert(response.data);
+            alert("✅ " + response.data);
 
-setName("");
-setEmail("");
-setPassword("");
+            setName("");
+            setEmail("");
+            setPassword("");
 
         } catch (error) {
 
-            alert("Registration Failed");
+            console.error("Registration error:", error);
+            alert("❌ " + (error.response?.data || error.message || "Registration Failed"));
         }
     };
 
