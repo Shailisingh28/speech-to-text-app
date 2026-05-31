@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,23 +17,30 @@ import com.sttapp.Model.Users;
 import com.sttapp.Repository.UserRepo;
 import com.sttapp.Security.JwtService;
 
-import lombok.RequiredArgsConstructor;
-
+// Lombok is not being processed for this build, so provide an explicit constructor.
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
     private final UserRepo userRepo;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+
+    public AuthController(UserRepo userRepo, JwtService jwtService, PasswordEncoder passwordEncoder) {
+        this.userRepo = userRepo;
+        this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         if (userRepo.findByEmail(request.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email already exist");
         }
-        Users users = Users.builder().name(request.getName()).password(passwordEncoder.encode(request.getPassword()))
-                .email(request.getEmail()).build();
+        Users users = new Users();
+        users.setName(request.getName());
+        users.setPassword(passwordEncoder.encode(request.getPassword()));
+        users.setEmail(request.getEmail());
         userRepo.save(users);
         return ResponseEntity.ok("User registered");
     }

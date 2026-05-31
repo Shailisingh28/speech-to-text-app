@@ -45,3 +45,6 @@ node_modules/
 # Environment
 .env
 application-local.properties
+
+application.properties
+ca.pem

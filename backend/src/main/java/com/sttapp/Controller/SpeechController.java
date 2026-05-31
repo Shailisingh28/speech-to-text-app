@@ -6,7 +6,7 @@ import com.sttapp.Repository.TranscriptionRepo;
 import com.sttapp.Service.FileStorageService;
 import com.sttapp.Service.SpeechService;
 
-import lombok.RequiredArgsConstructor;
+// Lombok is not being processed for this build, so provide an explicit constructor.
 
 import java.time.LocalDateTime;
 
@@ -14,14 +14,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/api/speech")
-@RequiredArgsConstructor
 public class SpeechController {
 
     private final FileStorageService fileStorageService;
     private final SpeechService speechService;
     private final TranscriptionRepo transcriptionRepo;
+
+    public SpeechController(FileStorageService fileStorageService, SpeechService speechService,
+            TranscriptionRepo transcriptionRepo) {
+        this.fileStorageService = fileStorageService;
+        this.speechService = speechService;
+        this.transcriptionRepo = transcriptionRepo;
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadAudio(
@@ -50,20 +57,17 @@ public class SpeechController {
         try {
 
             String savedFile = fileStorageService.saveFile(file);
-
             String path = "uploads/" + savedFile;
-
             String transcript = speechService.transcribeAudio(path);
 
-            Transcription transcription = Transcription.builder()
-                    .audioFile(savedFile)
-                    .transcript(transcript)
-                    .createdAt(LocalDateTime.now())
-                    .build();
+            Transcription transcription = new Transcription();
+            transcription.setAudioFile(savedFile);
+            transcription.setTranscript(transcript);
+            transcription.setCreatedAt(LocalDateTime.now());
 
             transcriptionRepo.save(transcription);
 
-            return ResponseEntity.ok(transcript);
+            return ResponseEntity.ok(java.util.Map.of("transcript", transcript));
 
         } catch (Exception e) {
 
